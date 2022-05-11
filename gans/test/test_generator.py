@@ -4,20 +4,9 @@ from pathlib import Path
 import unittest
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 
-
-file = Path(__file__).resolve()
-parent, root = file.parent, file.parents[1]
-sys.path.append(str(root))
-# Additionally remove the current file's directory from sys.path
-try:
-    sys.path.remove(str(parent))
-except ValueError: # Already removed
-    pass
-
-from generator import get_generator_block, generator
-
+from gans.generator import get_generator_block, generator
 
 class generator_test(unittest.TestCase):
     """
