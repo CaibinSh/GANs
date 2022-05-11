@@ -1,3 +1,4 @@
+import torch
 from torch import nn
 
 def get_generator_block(input_dim, output_dim):

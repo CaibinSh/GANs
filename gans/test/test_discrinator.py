@@ -1,6 +1,4 @@
 """ This tests the generator function. """
-import sys
-from pathlib import Path
 import unittest
 import numpy as np
 import torch
