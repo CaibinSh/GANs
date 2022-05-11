@@ -15,7 +15,7 @@ class discriminator_test(unittest.TestCase):
         """
         Test discriminatior()
         """
-        in_features, out_features, num_test=40, 20, 1000
+        in_features, out_features, num_test=25, 12, 10000
 
         dis_block = get_discriminator_block(in_features, out_features)
         
@@ -34,7 +34,7 @@ class discriminator_test(unittest.TestCase):
         self.assertGreater(-test_output.min() / test_output.max(), 0.1, "LeakyReLU slope probably is not 0.2")
         self.assertLess(-test_output.min() / test_output.max(), 0.3, "LeakyReLU slope probably is not 0.2")
         self.assertGreater(test_output.std(), 0.3, "LeakyReLU slope probably is not 0.2")
-        self.assertGreater(test_output.std(), 0.5, "LeakyReLU slope probably is not 0.2")
+        self.assertLess(test_output.std(), 0.5, "LeakyReLU slope probably is not 0.2")
     
     # Verify the discriminator class    
     def test_discriminatior(self):
