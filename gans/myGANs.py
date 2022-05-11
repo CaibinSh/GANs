@@ -26,6 +26,7 @@ class myGANs:
         n_epochs=200,
         criterion=nn.BCEWithLogitsLoss(),
     ):
+        pass
 
     # Load MNIST dataset as tensors
     
@@ -33,8 +34,8 @@ class myGANs:
 
 # Set your parameters
 
-z_dim = 64
-display_step = 5000
+# z_dim = 64
+# display_step = 5000
 
 def dataloader(
         MNIST('.', download=True, transform=transforms.ToTensor()),
