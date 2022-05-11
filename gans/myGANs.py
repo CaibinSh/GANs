@@ -1,5 +1,9 @@
 import torch
 from torch import nn
+from torch.utils.data import DataLoader
+
+from torchvision import transforms
+from torchvision.datasets import MNIST
 
 from .generator import generator
 from .discriminator import discriminator
@@ -38,7 +42,6 @@ class myGANs:
 # display_step = 5000
 
 def dataloader(
-        MNIST('.', download=True, transform=transforms.ToTensor()),
         batch_size=128,
         shuffle=True
     ):

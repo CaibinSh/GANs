@@ -1,7 +1,9 @@
+import torch
+
 from .discriminator import discriminator
 from .generator import generator, get_noise
 
-def get_disc_loss(gen, disc, criterion, real, num_images, z_dim, device=):
+def get_disc_loss(gen, disc, criterion, real, num_images, z_dim, device="cpu"):
     '''
     Return the loss of the discriminator given inputs.
     Parameters:
