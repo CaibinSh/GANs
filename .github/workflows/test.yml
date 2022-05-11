@@ -1,4 +1,4 @@
-name: Pylint
+name: Test
 
 on: [push]
 
@@ -21,7 +21,13 @@ jobs:
         conda env create -f gans-cpu.yml
     - name: Analysing the code with pylint
       run: |
-          export PATH="$GITHUB_PATH:$PATH"
-          source activate gans
-          conda install pylint
-          pylint $(git ls-files '*.py') --fail-under 5 --disable=R,C --generated-members=torch.*
+        export PATH="$GITHUB_PATH:$PATH"
+        source activate gans
+        conda install pylint
+        pylint $(git ls-files '*.py') --fail-under 5 --disable=R,C --generated-members=torch.*
+    - name: Run unit tests
+      run: |
+        export PATH="$GITHUB_PATH:$PATH"
+        source activate gans
+        conda install pytest
+        pytest gans
