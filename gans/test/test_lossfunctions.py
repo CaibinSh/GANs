@@ -9,7 +9,7 @@ from torch import nn
 from gans.generator import generator
 from gans.discriminator import discriminator
 from gans.loss_function import get_disc_loss, get_gen_loss
-from gans.myGANs import dataloader
+from gans.myGANs import MNISTDataModule
 
 class loss_test(unittest.TestCase):
     """
@@ -45,7 +45,7 @@ class loss_test(unittest.TestCase):
         disc = discriminator().to(device="cpu") 
         disc_opt = torch.optim.Adam(disc.parameters(), lr=0.00001)
         num_steps = 0
-        mydata = dataloader()
+        mydata = MNISTDataModule().train_dataloader()
         for real, _ in mydata:
             cur_batch_size = len(real)
             real = real.view(cur_batch_size, -1).to("cpu")
@@ -105,7 +105,7 @@ class loss_test(unittest.TestCase):
         disc = discriminator().to(device="cpu") 
         disc_opt = torch.optim.Adam(disc.parameters(), lr=0.00001)
         num_steps = 0
-        mydata = dataloader()
+        mydata = MNISTDataModule().train_dataloader()
         for real, _ in mydata:
             cur_batch_size = len(real)
             real = real.view(cur_batch_size, -1).to("cpu")

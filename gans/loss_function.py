@@ -30,7 +30,7 @@ def get_disc_loss(gen, disc, criterion, real, num_images, z_dim, device="cpu"):
     return disc_loss
 
 
-def get_gen_loss(gen, disc, criterion, num_images, z_dim, device):
+def get_gen_loss(gen, disc, criterion, num_images, z_dim, device="cpu"):
     '''
     Return the loss of the generator given inputs.
     Parameters:
