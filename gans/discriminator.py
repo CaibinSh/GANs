@@ -1,3 +1,4 @@
+import numpy as np
 import torch.nn as nn
 
 def get_discriminator_block(input_dim, output_dim):
@@ -25,13 +26,15 @@ class discriminator(nn.Module):
             (MNIST images are 28x28 = 784 so that is your default)
         hidden_dim: the inner dimension, a scalar
     '''
-    def __init__(self, im_dim=784, hidden_dim=128) -> None:
+    def __init__(self, img_shape):
         super().__init__()
-        self.disc = nn.Sequential(
-            get_discriminator_block(im_dim, hidden_dim * 4),
-            get_discriminator_block(hidden_dim * 4, hidden_dim * 2),
-            get_discriminator_block(hidden_dim * 2, hidden_dim),
-            nn.Linear(hidden_dim, 1),    
+
+        self.discriminator = nn.Sequential(
+            get_discriminator_block(int(np.prod(img_shape)), 512),
+            get_discriminator_block(512, 256),
+            get_discriminator_block(256, 128),
+            nn.Linear(128, 1),
+            nn.Sigmoid(),
         )
     
     def forward(self, image):
@@ -41,7 +44,9 @@ class discriminator(nn.Module):
         Parameters:
             image: a flattened image tensor with dimension (im_dim)
         '''
-        return self.disc(image)
+        img_flat = image.view(image.size(0), -1)
+
+        return self.discriminator(img_flat)
     
     # Needed for grading
     def get_disc(self):
@@ -49,4 +54,4 @@ class discriminator(nn.Module):
         Returns:
             the sequential model
         '''
-        return self.disc
+        return self.discriminator

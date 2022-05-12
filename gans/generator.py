@@ -1,4 +1,4 @@
-import torch
+import numpy as np
 from torch import nn
 
 def get_generator_block(input_dim, output_dim):
@@ -27,14 +27,14 @@ class generator(nn.Module):
           (MNIST images are 28 x 28 = 784 so that is your default)
         hidden_dim: the inner dimension, a scalar
     '''
-    def __init__(self, z_dim=10, im_dim=784, hidden_dim=128) -> None:
+    def __init__(self, latent_dim, img_shape):
         super().__init__()
-        self.gen = nn.Sequential(
-            get_generator_block(z_dim, hidden_dim),
-            get_generator_block(hidden_dim, hidden_dim * 2),
-            get_generator_block(hidden_dim * 2, hidden_dim * 4),
-            get_generator_block(hidden_dim * 4, hidden_dim * 8),
-            nn.Linear(hidden_dim * 8, im_dim),
+        self.generator = nn.Sequential(
+            get_generator_block(latent_dim, latent_dim * 2),
+            get_generator_block(latent_dim * 2, latent_dim * 4),
+            get_generator_block(latent_dim * 4, latent_dim * 8),
+            get_generator_block(latent_dim * 8, latent_dim * 16),
+            nn.Linear(latent_dim * 16, int(np.prod(img_shape))),
             nn.Sigmoid()
         )
     
@@ -45,7 +45,7 @@ class generator(nn.Module):
         Parameters:
             noise: a noise tensor with dimensions (n_samples, z_dim)
         '''
-        return self.gen(noise)
+        return self.generator(noise)
     
     # Needed for grading
     def get_gen(self):
@@ -53,16 +53,4 @@ class generator(nn.Module):
         Returns:
             the sequential model
         '''
-        return self.gen
-
-def get_noise(n_samples, z_dim, device="cpu"):
-    '''
-    Function for creating noise vectors: Given the dimensions (n_samples, z_dim),
-    creates a tensor of that shape filled with random numbers from the normal distribution.
-    Parameters:
-        n_samples: the number of samples to generate, a scalar
-        z_dim: the dimension of the noise vector, a scalar
-        device: the device type
-    '''
-    return torch.randn(n_samples, z_dim, device=device)
-
+        return self.generator

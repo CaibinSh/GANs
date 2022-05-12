@@ -3,98 +3,144 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader, random_split
 
-import torch.nn.functional as F
-from pytorch_lightning import LightningDataModule, LightningModule, Trainer
-from pytorch_lightning.callbacks.progress import TQDMProgressBar
+# import torch.nn.functional as F
+from pytorch_lightning import LightningDataModule, LightningModule
 from torchvision.datasets import MNIST
 
-
+import torchvision
 from torchvision import transforms
 from torchvision.datasets import MNIST
 
 from .generator import generator
 from .discriminator import discriminator
-from .loss_function import get_disc_loss, get_gen_loss
 
 PATH_DATASETS = os.environ.get("PATH_DATASETS", ".")
+BATCH_SIZE = 256 if torch.cuda.is_available() else 64
+NUM_WORKERS = int(os.cpu_count() / 2)
 
 class GANs(LightningModule):
     '''
     myGANs Class
     Values:
-        z_dim: the dimension of the noise vector, a scalar
+        latent_dim: the dimension of the noise vector, a scalar
         im_dim: the dimension of the images, fitted for the dataset used, a scalar
           (MNIST images are 28 x 28 = 784 so that is your default)
         hidden_dim: the inner dimension, a scalar
     '''
-    def __init__(self, z_dim=64, lr=0.00001, num_images=25):
+    def __init__(self,
+    channels,
+    width,
+    height,
+    latent_dim: int = 64,
+    lr: float = 0.00001,
+    batch_size: int = 128,
+    **kwargs,
+    ):
         super().__init__()
         self.save_hyperparameters()
+
+        data_shape = (channels, width, height)
         # self.batch_size = batch_size
-        self.gen = generator(z_dim=z_dim, im_dim=784, hidden_dim=128)
-        self.disc = discriminator(im_dim=784, hidden_dim=128)
-        self.criterion = nn.BCEWithLogitsLoss()
-        self.z_dim = z_dim
-        self.num_images = num_images
-        self.lr=lr
+        self.generator = generator(latent_dim=self.hparams.latent_dim, img_shape=data_shape)
+        self.discriminator = discriminator(img_shape=data_shape)
+        self.validation_z = torch.randn(8, self.hparams.latent_dim)
+        self.example_input_array = torch.zeros(2, self.hparams.latent_dim)
 
     def forward(self, z):
-        return self.gen(z)
+        return self.generator(z)
 
-    # def adversarial_loss(self, y_hat, y):
-    #     return self.criterion(y_hat, y)
+    def adversarial_loss(self, y_hat, y):
+        criterion = nn.BCEWithLogitsLoss()
+        return criterion(y_hat, y)
 
     def training_step(self, train_batch, batch_idx, optimizer_idx):
         cur_batch_size = len(train_batch)
-        # if test_generator:
-        #     try:
-        #         assert lr > 0.0000002 or (gen.gen[0][0].weight.grad.abs().max() < 0.0005 and epoch == 0)
-        #         assert torch.any(gen.gen[0][0].weight.detach().clone() != old_generator_weights)
-        #     except:
-        #         error = True
-        #         print("Runtime tests have failed")
+        imgs, _ = train_batch
+        
+         # sample noise
+        z = torch.randn(imgs.shape[0], self.hparams.latent_dim)
+        z = z.type_as(imgs)
 
         # train generator
         if optimizer_idx == 0:
 
-            gen_loss = get_gen_loss(self.gen, self.disc, self.criterion, cur_batch_size, self.z_dim)
-            # Update gradients
-            gen_loss.backward(retain_graph=True)
+            # generate images
+            self.generated_imgs = self(z)
 
-            self.log("gen_loss", gen_loss, prog_bar=True)
-            return gen_loss
+            # log sampled images
+            sample_imgs = self.generated_imgs[:6]
+            grid = torchvision.utils.make_grid(sample_imgs)
+            self.logger.experiment.add_image("generated_images", grid, 0)
+
+            # ground truth result (ie: all fake)
+            # put on GPU because we created this tensor inside training_loop
+            valid = torch.ones(imgs.size(0), 1)
+            valid = valid.type_as(imgs)
+
+            # adversarial loss is binary cross-entropy
+            g_loss = self.adversarial_loss(self.discriminator(self(z)), valid)
+            self.log("g_loss", g_loss, prog_bar=True)
+            
+            return g_loss
 
         # train discriminator
         if optimizer_idx == 1:
             # Measure discriminator's ability to classify real from generated samples
-            real, _ = train_batch
-            real = real.view(real.size(0), -1)
 
-            disc_loss = get_disc_loss(self.gen, self.disc, self.criterion, real, self.num_images, self.z_dim)
+            # how well can it label as real?
+            valid = torch.ones(imgs.size(0), 1)
+            valid = valid.type_as(imgs)
 
-            # Update gradients
-            disc_loss.backward(retain_graph=True)
+            real_loss = self.adversarial_loss(self.discriminator(imgs), valid)
 
-            self.log("disc_loss", disc_loss, prog_bar=True)
-            return disc_loss
+            # how well can it label as fake?
+            fake = torch.zeros(imgs.size(0), 1)
+            fake = fake.type_as(imgs)
+
+            fake_loss = self.adversarial_loss(self.discriminator(self(z).detach()), fake)
+
+            # discriminator loss is the average of these
+            d_loss = (real_loss + fake_loss) / 2
+            self.log("d_loss", d_loss, prog_bar=True)
+            return d_loss
 
     def configure_optimizers(self):
-        gen_opt = torch.optim.Adam(self.gen.parameters(), lr=self.lr)
-        disc_opt = torch.optim.Adam(self.disc.parameters(), lr=self.lr)
+        gen_opt = torch.optim.Adam(self.generator.parameters(), lr=self.hparams.lr)
+        disc_opt = torch.optim.Adam(self.discriminator.parameters(), lr=self.hparams.lr)
         return gen_opt, disc_opt
-        
+
+    def on_validation_epoch_end(self):
+        z = self.validation_z.type_as(self.generator.generator[0].weight)
+
+        # log sampled images
+        sample_imgs = self(z)
+        grid = torchvision.utils.make_grid(sample_imgs)
+        self.logger.experiment.add_image("generated_images", grid, self.current_epoch)
+
 class MNISTDataModule(LightningDataModule):
     def __init__(
         self,
         data_dir: str = PATH_DATASETS,
-        batch_size: int = 128,
-        num_workers: int = 24,
+        batch_size: int = BATCH_SIZE,
+        num_workers: int = NUM_WORKERS,
     ):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.transform = transforms.ToTensor()
+
+        self.transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize((0.1307,), (0.3081,)),
+            ]
+        )
+
+        # self.dims is returned when you call dm.size()
+        # Setting default dims here because we know them.
+        # Could optionally be assigned dynamically in dm.setup()
+        self.dims = (1, 28, 28)
+        self.num_classes = 10
 
     def prepare_data(self):
         # download
@@ -104,7 +150,7 @@ class MNISTDataModule(LightningDataModule):
     def setup(self, stage=None):
         # Assign train/val datasets for use in dataloaders
         if stage == "fit" or stage is None:
-            mnist_full = MNIST(self.data_dir, download=True, transform=self.transform)
+            mnist_full = MNIST(self.data_dir, train=True, transform=self.transform)
             self.mnist_train, self.mnist_val = random_split(mnist_full, [55000, 5000])
 
         # Assign test dataset for use in dataloader(s)

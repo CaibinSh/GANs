@@ -5,3 +5,5 @@
 **.egg-info
 **.vscode
 **ubyte**
+**lightning_logs**
+**MNIST**
