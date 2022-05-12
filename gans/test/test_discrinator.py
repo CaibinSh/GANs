@@ -42,17 +42,18 @@ class discriminator_test(unittest.TestCase):
         Test discriminatior()
         """
 
-        img_shape, num_test = (1, 28, 28), 100
+        img_shape, num_tests = (1, 28, 28), 100
 
         disc = discriminator(img_shape).get_disc()
 
-        # Check there are three parts
-        self.assertTrue(len(disc)==4, "block number is not 4")
+        # Check there are five parts
+        self.assertTrue(len(disc)==5, "block number is not 5")
 
-        test_input = torch.randn(num_test, *img_shape)
-        test_output = disc(test_input)
-
-        self.assertTrue(np.array_equal(test_output.shape, (num_test, 1)))
+        test_input = torch.randn(num_tests, *img_shape)
+        test_flat = test_input.view(test_input.size(0), -1)
+        test_output = disc(test_flat)
+        
+        self.assertTrue(np.array_equal(test_output.shape, (num_tests, 1)))
 
 if __name__ == '__main__':
     unittest.main()
