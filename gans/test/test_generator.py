@@ -36,16 +36,16 @@ class generator_test(unittest.TestCase):
         Test generator()
         """
 
-        z_dim, im_dim, hidden_dim, num_test = 5, 10, 20, 10000
+        latent_dim, img_shape, num_test = 10, (1, 28, 28), 10000
 
-        gen = generator(z_dim, im_dim, hidden_dim).get_gen()
+        gen = generator(latent_dim, img_shape).get_gen()
 
         self.assertTrue(len(gen)==6, "block number is not 6")
 
-        test_input = torch.randn(num_test, z_dim)
+        test_input = torch.randn(num_test, latent_dim)
         test_output = gen(test_input)
 
-        self.assertTrue(np.array_equal(test_output.shape, (num_test, im_dim)))
+        self.assertTrue(np.array_equal(test_output.shape, (num_test, img_shape)))
         
         self.assertLess(test_output.min(), .5, "Don't use a block in your solution")
         self.assertGreater(test_output.std(), .05, "Don't use batchnorm here")
