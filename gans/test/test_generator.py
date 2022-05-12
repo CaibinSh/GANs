@@ -45,7 +45,7 @@ class generator_test(unittest.TestCase):
         test_input = torch.randn(num_test, latent_dim)
         test_output = gen(test_input)
 
-        self.assertTrue(np.array_equal(test_output.shape, (num_test, img_shape)))
+        self.assertTrue(np.array_equal(test_output.shape, (num_test, int(np.prod(img_shape)))), "output dimension not expected")
         
         self.assertLess(test_output.min(), .5, "Don't use a block in your solution")
         self.assertGreater(test_output.std(), .05, "Don't use batchnorm here")

@@ -42,14 +42,14 @@ class discriminator_test(unittest.TestCase):
         Test discriminatior()
         """
 
-        z_dim, hidden_dim, num_test = 20, 8, 100
+        img_shape, num_test = (1, 28, 28), 100
 
-        disc = discriminator(z_dim, hidden_dim).get_disc()
+        disc = discriminator(img_shape).get_disc()
 
         # Check there are three parts
         self.assertTrue(len(disc)==4, "block number is not 4")
 
-        test_input = torch.randn(num_test, z_dim)
+        test_input = torch.randn(num_test, *img_shape)
         test_output = disc(test_input)
 
         self.assertTrue(np.array_equal(test_output.shape, (num_test, 1)))
