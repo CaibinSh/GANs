@@ -44,7 +44,7 @@ class GANs(LightningModule):
         # self.batch_size = batch_size
         self.generator = generator(z_dim=self.hparams.z_dim, latent_dim=self.hparams.latent_dim, img_shape=data_shape)
         self.discriminator = discriminator(img_shape=data_shape)
-        self.validation_z = torch.randn(8, self.hparams.z_dim)
+        self.validation_z = torch.randn(25, self.hparams.z_dim)
         self.example_input_array = torch.zeros(2, self.hparams.z_dim)
 
     def forward(self, z):
@@ -55,7 +55,7 @@ class GANs(LightningModule):
         return criterion(y_hat, y)
 
     def training_step(self, train_batch, batch_idx, optimizer_idx):
-        cur_batch_size = len(train_batch)
+
         imgs, _ = train_batch
         
          # sample noise
@@ -69,8 +69,8 @@ class GANs(LightningModule):
             self.generated_imgs = self(z)
 
             # log sampled images
-            sample_imgs = self.generated_imgs[:6]
-            grid = torchvision.utils.make_grid(sample_imgs)
+            # sample_imgs = self.generated_imgs[:6]
+            # grid = torchvision.utils.make_grid(sample_imgs).detach()
             # self.logger.experiment.add_image("generated_images", grid, 0)
 
             # ground truth result (ie: all fake)
@@ -80,7 +80,8 @@ class GANs(LightningModule):
 
             # adversarial loss is binary cross-entropy
             g_loss = self.adversarial_loss(self.discriminator(self(z)), valid)
-            self.log("g_loss", g_loss, prog_bar=True)
+            
+            self.log("loss/g_loss", g_loss, prog_bar=True)
             
             return g_loss
 
@@ -102,22 +103,27 @@ class GANs(LightningModule):
 
             # discriminator loss is the average of these
             d_loss = (real_loss + fake_loss) / 2
-            self.log("d_loss", d_loss, prog_bar=True)
+            self.log("loss/d_loss", d_loss, prog_bar=True)
             return d_loss
 
     def configure_optimizers(self):
         gen_opt = torch.optim.Adam(self.generator.parameters(), lr=self.hparams.lr)
         disc_opt = torch.optim.Adam(self.discriminator.parameters(), lr=self.hparams.lr)
         return gen_opt, disc_opt
+    
+    def validation_step(self, batch, batch_idx):
+        pass
 
     def on_validation_epoch_end(self):
         z = self.validation_z.type_as(self.generator.generator[0].weight)
 
         # log sampled images
         sample_imgs = self(z)
-        # grid = torchvision.utils.make_grid(sample_imgs)
-        # self.logger.experiment.add_image("generated_images", grid, self.current_epoch)
-        return sample_imgs# grid
+
+        image_unflat = sample_imgs.detach().cpu().view(-1, 1, 28, 28)
+        grid = torchvision.utils.make_grid(image_unflat, nrow=5)
+        self.logger.experiment.add_image("generated_images", grid, self.current_epoch)
+        return grid # sample_imgs# 
 
 class MNISTDataModule(LightningDataModule):
     def __init__(
