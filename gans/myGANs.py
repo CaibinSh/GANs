@@ -55,7 +55,9 @@ class GANs(LightningModule):
         return criterion(y_hat, y)
 
     def training_step(self, train_batch, batch_idx, optimizer_idx):
-        cur_batch_size = len(train_batch)
+
+        g_opt, d_opt = self.optimizers()
+        
         imgs, _ = train_batch
         
          # sample noise
@@ -69,8 +71,8 @@ class GANs(LightningModule):
             self.generated_imgs = self(z)
 
             # log sampled images
-            sample_imgs = self.generated_imgs[:6]
-            grid = torchvision.utils.make_grid(sample_imgs)
+            # sample_imgs = self.generated_imgs[:6]
+            # grid = torchvision.utils.make_grid(sample_imgs).detach()
             # self.logger.experiment.add_image("generated_images", grid, 0)
 
             # ground truth result (ie: all fake)
@@ -80,7 +82,8 @@ class GANs(LightningModule):
 
             # adversarial loss is binary cross-entropy
             g_loss = self.adversarial_loss(self.discriminator(self(z)), valid)
-            self.log("g_loss", g_loss, prog_bar=True)
+            
+            self.log("loss/g_loss", g_loss, prog_bar=True)
             
             return g_loss
 
@@ -102,7 +105,7 @@ class GANs(LightningModule):
 
             # discriminator loss is the average of these
             d_loss = (real_loss + fake_loss) / 2
-            self.log("d_loss", d_loss, prog_bar=True)
+            self.log("loss/d_loss", d_loss, prog_bar=True)
             return d_loss
 
     def configure_optimizers(self):
@@ -115,9 +118,11 @@ class GANs(LightningModule):
 
         # log sampled images
         sample_imgs = self(z)
-        # grid = torchvision.utils.make_grid(sample_imgs)
-        # self.logger.experiment.add_image("generated_images", grid, self.current_epoch)
-        return sample_imgs# grid
+
+        image_unflat = sample_imgs.detach().cpu().view(-1, *z.size())
+        grid = torchvision.utils.make_grid(image_unflat, nrow=5)
+        self.logger.experiment.add_image("generated_images", grid, self.current_epoch)
+        return grid # sample_imgs# 
 
 class MNISTDataModule(LightningDataModule):
     def __init__(
