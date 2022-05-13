@@ -44,7 +44,7 @@ class GANs(LightningModule):
         # self.batch_size = batch_size
         self.generator = generator(z_dim=self.hparams.z_dim, latent_dim=self.hparams.latent_dim, img_shape=data_shape)
         self.discriminator = discriminator(img_shape=data_shape)
-        self.validation_z = torch.randn(8, self.hparams.z_dim)
+        self.validation_z = torch.randn(25, self.hparams.z_dim)
         self.example_input_array = torch.zeros(2, self.hparams.z_dim)
 
     def forward(self, z):
@@ -56,8 +56,6 @@ class GANs(LightningModule):
 
     def training_step(self, train_batch, batch_idx, optimizer_idx):
 
-        g_opt, d_opt = self.optimizers()
-        
         imgs, _ = train_batch
         
          # sample noise
@@ -112,6 +110,9 @@ class GANs(LightningModule):
         gen_opt = torch.optim.Adam(self.generator.parameters(), lr=self.hparams.lr)
         disc_opt = torch.optim.Adam(self.discriminator.parameters(), lr=self.hparams.lr)
         return gen_opt, disc_opt
+    
+    def validation_step(self, batch, batch_idx):
+        pass
 
     def on_validation_epoch_end(self):
         z = self.validation_z.type_as(self.generator.generator[0].weight)
@@ -119,7 +120,7 @@ class GANs(LightningModule):
         # log sampled images
         sample_imgs = self(z)
 
-        image_unflat = sample_imgs.detach().cpu().view(-1, *z.size())
+        image_unflat = sample_imgs.detach().cpu().view(-1, 1, 28, 28)
         grid = torchvision.utils.make_grid(image_unflat, nrow=5)
         self.logger.experiment.add_image("generated_images", grid, self.current_epoch)
         return grid # sample_imgs# 
