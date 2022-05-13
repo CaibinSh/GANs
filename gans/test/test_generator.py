@@ -40,7 +40,7 @@ class generator_test(unittest.TestCase):
 
         gen = generator(z_dim, latent_dim, img_shape).get_gen()
 
-        self.assertTrue(len(gen)==6, "block number is not 6")
+        self.assertTrue(len(gen)==14, "block number is not 14")
 
         test_input = torch.randn(num_test, latent_dim)
         test_output = gen(test_input)

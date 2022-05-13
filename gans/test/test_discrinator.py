@@ -47,7 +47,7 @@ class discriminator_test(unittest.TestCase):
         disc = discriminator(img_shape).get_disc()
 
         # Check there are five parts
-        self.assertTrue(len(disc)==5, "block number is not 5")
+        self.assertTrue(len(disc)==7, "block number is not 7")
 
         test_input = torch.randn(num_tests, *img_shape)
         test_flat = test_input.view(test_input.size(0), -1)

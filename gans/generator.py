@@ -34,8 +34,8 @@ class generator(nn.Module):
             *get_generator_block(latent_dim, latent_dim * 2),
             *get_generator_block(latent_dim * 2, latent_dim * 4),
             *get_generator_block(latent_dim * 4, latent_dim * 8),
-            nn.Linear(latent_dim * 8, int(np.prod(img_shape)))
-            # nn.Sigmoid()
+            nn.Linear(latent_dim * 8, int(np.prod(img_shape))),
+            nn.Sigmoid()
         )
     
     def forward(self, noise):
