@@ -27,15 +27,15 @@ class generator(nn.Module):
           (MNIST images are 28 x 28 = 784 so that is your default)
         hidden_dim: the inner dimension, a scalar
     '''
-    def __init__(self, latent_dim, img_shape):
+    def __init__(self, z_dim, latent_dim, img_shape):
         super().__init__()
         self.generator = nn.Sequential(
-            get_generator_block(latent_dim, latent_dim * 2),
-            get_generator_block(latent_dim * 2, latent_dim * 4),
-            get_generator_block(latent_dim * 4, latent_dim * 8),
-            get_generator_block(latent_dim * 8, latent_dim * 16),
-            nn.Linear(latent_dim * 16, int(np.prod(img_shape))),
-            nn.Sigmoid()
+            *get_generator_block(z_dim, latent_dim),
+            *get_generator_block(latent_dim, latent_dim * 2),
+            *get_generator_block(latent_dim * 2, latent_dim * 4),
+            *get_generator_block(latent_dim * 4, latent_dim * 8),
+            nn.Linear(latent_dim * 8, int(np.prod(img_shape)))
+            # nn.Sigmoid()
         )
     
     def forward(self, noise):

@@ -30,11 +30,11 @@ class discriminator(nn.Module):
         super().__init__()
 
         self.discriminator = nn.Sequential(
-            get_discriminator_block(int(np.prod(img_shape)), 512),
-            get_discriminator_block(512, 256),
-            get_discriminator_block(256, 128),
+            *get_discriminator_block(int(np.prod(img_shape)), 512),
+            *get_discriminator_block(512, 256),
+            *get_discriminator_block(256, 128),
             nn.Linear(128, 1),
-            nn.Sigmoid(),
+            # nn.Sigmoid(),
         )
     
     def forward(self, image):

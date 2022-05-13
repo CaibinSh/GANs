@@ -36,9 +36,9 @@ class generator_test(unittest.TestCase):
         Test generator()
         """
 
-        latent_dim, img_shape, num_test = 10, (1, 28, 28), 10000
+        latent_dim, img_shape, z_dim, num_test = 10, (1, 28, 28), 10, 10000
 
-        gen = generator(latent_dim, img_shape).get_gen()
+        gen = generator(z_dim, latent_dim, img_shape).get_gen()
 
         self.assertTrue(len(gen)==6, "block number is not 6")
 

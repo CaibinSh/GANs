@@ -16,7 +16,7 @@ from .discriminator import discriminator
 
 PATH_DATASETS = os.environ.get("PATH_DATASETS", ".")
 BATCH_SIZE = 256 if torch.cuda.is_available() else 64
-NUM_WORKERS = int(os.cpu_count() / 2)
+NUM_WORKERS = int(os.cpu_count() - 4)
 
 class GANs(LightningModule):
     '''
@@ -31,6 +31,7 @@ class GANs(LightningModule):
     channels,
     width,
     height,
+    z_dim: int = 10,
     latent_dim: int = 64,
     lr: float = 0.00001,
     batch_size: int = 128,
@@ -41,10 +42,10 @@ class GANs(LightningModule):
 
         data_shape = (channels, width, height)
         # self.batch_size = batch_size
-        self.generator = generator(latent_dim=self.hparams.latent_dim, img_shape=data_shape)
+        self.generator = generator(z_dim=self.hparams.z_dim, latent_dim=self.hparams.latent_dim, img_shape=data_shape)
         self.discriminator = discriminator(img_shape=data_shape)
-        self.validation_z = torch.randn(8, self.hparams.latent_dim)
-        self.example_input_array = torch.zeros(2, self.hparams.latent_dim)
+        self.validation_z = torch.randn(8, self.hparams.z_dim)
+        self.example_input_array = torch.zeros(2, self.hparams.z_dim)
 
     def forward(self, z):
         return self.generator(z)
@@ -58,7 +59,7 @@ class GANs(LightningModule):
         imgs, _ = train_batch
         
          # sample noise
-        z = torch.randn(imgs.shape[0], self.hparams.latent_dim)
+        z = torch.randn(imgs.shape[0], self.hparams.z_dim)
         z = z.type_as(imgs)
 
         # train generator
@@ -70,7 +71,7 @@ class GANs(LightningModule):
             # log sampled images
             sample_imgs = self.generated_imgs[:6]
             grid = torchvision.utils.make_grid(sample_imgs)
-            self.logger.experiment.add_image("generated_images", grid, 0)
+            # self.logger.experiment.add_image("generated_images", grid, 0)
 
             # ground truth result (ie: all fake)
             # put on GPU because we created this tensor inside training_loop
@@ -114,8 +115,9 @@ class GANs(LightningModule):
 
         # log sampled images
         sample_imgs = self(z)
-        grid = torchvision.utils.make_grid(sample_imgs)
-        self.logger.experiment.add_image("generated_images", grid, self.current_epoch)
+        # grid = torchvision.utils.make_grid(sample_imgs)
+        # self.logger.experiment.add_image("generated_images", grid, self.current_epoch)
+        return sample_imgs# grid
 
 class MNISTDataModule(LightningDataModule):
     def __init__(
@@ -129,13 +131,8 @@ class MNISTDataModule(LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
 
-        self.transform = transforms.Compose(
-            [
-                transforms.ToTensor(),
-                transforms.Normalize((0.1307,), (0.3081,)),
-            ]
-        )
-
+        self.transform = transforms.ToTensor()
+        
         # self.dims is returned when you call dm.size()
         # Setting default dims here because we know them.
         # Could optionally be assigned dynamically in dm.setup()
