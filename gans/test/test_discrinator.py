@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch import nn
 
-from gans.discriminator import get_discriminator_block, discriminator
+from gans.firstGAN.discriminator import get_discriminator_block, discriminator
 
 class discriminator_test(unittest.TestCase):
     """

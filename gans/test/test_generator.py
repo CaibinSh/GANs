@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch import nn
 
-from gans.generator import get_generator_block, generator
+from gans.firstGAN.generator import get_generator_block, generator
 
 class generator_test(unittest.TestCase):
     """
