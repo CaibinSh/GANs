@@ -11,18 +11,18 @@ import torchvision
 from torchvision import transforms
 from torchvision.datasets import MNIST
 
-from .generator import generator
+from .generator import generator, get_noise
 from .discriminator import discriminator
 
 PATH_DATASETS = os.environ.get("PATH_DATASETS", ".")
 BATCH_SIZE = 256 if torch.cuda.is_available() else 64
 NUM_WORKERS = int(os.cpu_count() - 4)
 
-class GANs(LightningModule):
+class DCGAN(LightningModule):
     '''
-    myGANs Class
+    DCGAN Class
     Values:
-        latent_dim: the dimension of the noise vector, a scalar
+        hidden_dim: the dimension of the noise vector, a scalar
         im_dim: the dimension of the images, fitted for the dataset used, a scalar
           (MNIST images are 28 x 28 = 784 so that is your default)
         hidden_dim: the inner dimension, a scalar
@@ -31,21 +31,33 @@ class GANs(LightningModule):
     channels,
     width,
     height,
+    im_chan: int = 1,
     z_dim: int = 10,
-    latent_dim: int = 64,
-    lr: float = 0.00001,
+    hidden_dim: int = 64,
+    lr: float = 0.0002,
     batch_size: int = 128,
+    beta_1: float = 0.5,
+    beta_2: float = 0.999,
     **kwargs,
     ):
         super().__init__()
         self.save_hyperparameters()
 
-        data_shape = (channels, width, height)
-        # self.batch_size = batch_size
-        self.generator = generator(z_dim=self.hparams.z_dim, latent_dim=self.hparams.latent_dim, img_shape=data_shape)
-        self.discriminator = discriminator(img_shape=data_shape)
-        self.validation_z = torch.randn(25, self.hparams.z_dim)
-        self.example_input_array = torch.zeros(2, self.hparams.z_dim)
+        self.z_dim = z_dim
+        self.generator = generator(z_dim=self.hparams.z_dim, hidden_dim=self.hparams.hidden_dim, im_chan=self.hparams.im_chan).apply(self.weights_init)
+        self.discriminator = discriminator(im_chan=self.hparams.im_chan, hidden_dim=self.hparams.hidden_dim).apply(self.weights_init)
+    
+    def weights_init(self, m):
+        """initialize the weights to the normal distribution with mean 0 and standard deviation 0.02
+
+        Args:
+            m (nn.Module): nn.Module, generator or discriminator
+        """
+        if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
+            torch.nn.init.normal_(m.weight, 0.0, 0.02)
+        if isinstance(m, nn.BatchNorm2d):
+            torch.nn.init.normal_(m.weight, 0.0, 0.02)
+            torch.nn.init.constant_(m.bias, 0)
 
     def forward(self, z):
         return self.generator(z)
@@ -57,29 +69,23 @@ class GANs(LightningModule):
     def training_step(self, train_batch, batch_idx, optimizer_idx):
 
         imgs, _ = train_batch
-        
-         # sample noise
-        z = torch.randn(imgs.shape[0], self.hparams.z_dim)
-        z = z.type_as(imgs)
 
         # train generator
         if optimizer_idx == 0:
+            
+            # sample noise
+            fake_noise = get_noise(len(imgs), self.z_dim)
+            fake_noise = fake_noise.type_as(imgs)
 
             # generate images
-            self.generated_imgs = self(z)
+            self.generated_imgs = self(fake_noise)
 
-            # log sampled images
-            # sample_imgs = self.generated_imgs[:6]
-            # grid = torchvision.utils.make_grid(sample_imgs).detach()
-            # self.logger.experiment.add_image("generated_images", grid, 0)
-
-            # ground truth result (ie: all fake)
             # put on GPU because we created this tensor inside training_loop
             valid = torch.ones(imgs.size(0), 1)
             valid = valid.type_as(imgs)
 
             # adversarial loss is binary cross-entropy
-            g_loss = self.adversarial_loss(self.discriminator(self(z)), valid)
+            g_loss = self.adversarial_loss(self.discriminator(self(fake_noise)), valid)
             
             self.log("loss/g_loss", g_loss, prog_bar=True)
             
@@ -88,7 +94,11 @@ class GANs(LightningModule):
         # train discriminator
         if optimizer_idx == 1:
             # Measure discriminator's ability to classify real from generated samples
-
+            
+            # sample noise
+            fake_noise2 = get_noise(len(imgs), self.z_dim)
+            fake_noise2 = fake_noise2.type_as(imgs)
+            
             # how well can it label as real?
             valid = torch.ones(imgs.size(0), 1)
             valid = valid.type_as(imgs)
@@ -99,7 +109,7 @@ class GANs(LightningModule):
             fake = torch.zeros(imgs.size(0), 1)
             fake = fake.type_as(imgs)
 
-            fake_loss = self.adversarial_loss(self.discriminator(self(z).detach()), fake)
+            fake_loss = self.adversarial_loss(self.discriminator(self(fake_noise2).detach()), fake)
 
             # discriminator loss is the average of these
             d_loss = (real_loss + fake_loss) / 2
@@ -107,15 +117,17 @@ class GANs(LightningModule):
             return d_loss
 
     def configure_optimizers(self):
-        gen_opt = torch.optim.Adam(self.generator.parameters(), lr=self.hparams.lr)
-        disc_opt = torch.optim.Adam(self.discriminator.parameters(), lr=self.hparams.lr)
+        gen_opt = torch.optim.Adam(self.generator.parameters(), lr=self.hparams.lr, betas=(self.hparams.beta_1, self.hparams.beta_2))
+        disc_opt = torch.optim.Adam(self.discriminator.parameters(), lr=self.hparams.lr, betas=(self.hparams.beta_1, self.hparams.beta_2))
         return gen_opt, disc_opt
     
     def validation_step(self, batch, batch_idx):
         pass
 
     def on_validation_epoch_end(self):
-        z = self.validation_z.type_as(self.generator.generator[0].weight)
+        
+        z = get_noise(n_samples=25, z_dim=self.hparams.z_dim)
+        z = z.type_as(self.generator.generator[0][0].weight)
 
         # log sampled images
         sample_imgs = self(z)
@@ -137,7 +149,10 @@ class MNISTDataModule(LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
 
-        self.transform = transforms.ToTensor()
+        self.transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,)),
+        ])
         
         # self.dims is returned when you call dm.size()
         # Setting default dims here because we know them.

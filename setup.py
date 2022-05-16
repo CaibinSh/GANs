@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-exec(open("models/__version__.py").read())
+exec(open("gans/__version__.py").read())
 
 setup(
     name="gans",
