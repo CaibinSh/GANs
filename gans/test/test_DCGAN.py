@@ -1,8 +1,5 @@
 """ This tests the generator function. """
 import unittest
-import numpy as np
-import torch
-from torch import nn
 
 from gans.models.DCGAN.generator import generator, get_noise
 from gans.models.DCGAN.discriminator import discriminator

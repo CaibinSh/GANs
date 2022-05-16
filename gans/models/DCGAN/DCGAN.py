@@ -9,7 +9,6 @@ from torchvision.datasets import MNIST
 
 import torchvision
 from torchvision import transforms
-from torchvision.datasets import MNIST
 
 from .generator import generator, get_noise
 from .discriminator import discriminator
@@ -28,14 +27,10 @@ class DCGAN(LightningModule):
         hidden_dim: the inner dimension, a scalar
     '''
     def __init__(self,
-    channels,
-    width,
-    height,
     im_chan: int = 1,
     z_dim: int = 10,
     hidden_dim: int = 64,
     lr: float = 0.0002,
-    batch_size: int = 128,
     beta_1: float = 0.5,
     beta_2: float = 0.999,
     **kwargs,

@@ -9,7 +9,6 @@ from torchvision.datasets import MNIST
 
 import torchvision
 from torchvision import transforms
-from torchvision.datasets import MNIST
 
 from .generator import generator
 from .discriminator import discriminator
@@ -34,14 +33,12 @@ class GANs(LightningModule):
     z_dim: int = 10,
     latent_dim: int = 64,
     lr: float = 0.00001,
-    batch_size: int = 128,
     **kwargs,
     ):
         super().__init__()
         self.save_hyperparameters()
 
         data_shape = (channels, width, height)
-        # self.batch_size = batch_size
         self.generator = generator(z_dim=self.hparams.z_dim, latent_dim=self.hparams.latent_dim, img_shape=data_shape)
         self.discriminator = discriminator(img_shape=data_shape)
         self.example_input_array = torch.zeros(2, self.hparams.z_dim)
