@@ -30,4 +30,4 @@ jobs:
         export PATH="$GITHUB_PATH:$PATH"
         source activate gans
         conda install pytest
-        pytest test/
+        pytest gans/test/
