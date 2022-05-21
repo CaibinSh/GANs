@@ -1,14 +1,11 @@
 """ This tests the generator function. """
 import unittest
-import numpy as np
-import torch
-from torch import nn
 
 from gans.models.DCGAN.generator import generator, get_noise
 from gans.models.DCGAN.discriminator import discriminator
 
 
-class generator_test(unittest.TestCase):
+class test_generator(unittest.TestCase):
     """
     Test generator.py
     """
@@ -56,7 +53,7 @@ class generator_test(unittest.TestCase):
         self.assertGreater(gen_output.std(), 0.5)
         self.assertLess(gen_output.std(), 0.8)
         
-class discriminator_test(unittest.TestCase):
+class test_discriminator(unittest.TestCase):
     """
     Test generator.py
     """

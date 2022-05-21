@@ -6,4 +6,7 @@
 **.vscode
 **ubyte**
 **lightning_logs**
-**MNIST**
+!datasets/MNIST**
+**MNIST
+**gans_logs
+**.**.ipynb
