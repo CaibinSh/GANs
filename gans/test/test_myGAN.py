@@ -7,7 +7,7 @@ from torch import nn
 from gans.models.firstGAN.generator import get_generator_block, generator
 from gans.models.firstGAN.discriminator import get_discriminator_block, discriminator
 
-class discriminator_test(unittest.TestCase):
+class test_discriminator(unittest.TestCase):
     """
     Test generator.py
     """
@@ -56,7 +56,7 @@ class discriminator_test(unittest.TestCase):
         
         self.assertTrue(np.array_equal(test_output.shape, (num_tests, 1)))
 
-class generator_test(unittest.TestCase):
+class test_generator(unittest.TestCase):
     """
     Test generator.py
     """

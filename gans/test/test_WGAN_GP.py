@@ -5,7 +5,7 @@ from gans.models.DCGAN.generator import generator, get_noise
 from gans.models.DCGAN.discriminator import discriminator
 
 
-class test_generator(unittest.TestCase):
+class generator_test(unittest.TestCase):
     """
     Test generator.py
     """
@@ -53,7 +53,7 @@ class test_generator(unittest.TestCase):
         self.assertGreater(gen_output.std(), 0.5)
         self.assertLess(gen_output.std(), 0.8)
         
-class test_discriminator(unittest.TestCase):
+class discriminator_test(unittest.TestCase):
     """
     Test generator.py
     """
