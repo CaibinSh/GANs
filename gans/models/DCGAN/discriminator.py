@@ -9,15 +9,15 @@ class discriminator(nn.Module):
               (MNIST is black-and-white, so 1 channel is your default)
     hidden_dim: the inner dimension, a scalar
     '''
-    def __init__(self, im_chan=1, hidden_dim=16):
+    def __init__(self, im_chan=1, hidden_dim=16, spectral_norm=True):
         super().__init__()
         self.discriminator = nn.Sequential(
-            self.make_discriminator_block(im_chan, hidden_dim),
-            self.make_discriminator_block(hidden_dim, hidden_dim * 2),
-            self.make_discriminator_block(hidden_dim * 2, 1, final_layer=True)
+            self.make_discriminator_block(im_chan, hidden_dim, spectral_norm=spectral_norm),
+            self.make_discriminator_block(hidden_dim, hidden_dim * 2, spectral_norm=spectral_norm),
+            self.make_discriminator_block(hidden_dim * 2, 1, final_layer=True, spectral_norm=spectral_norm)
         )
 
-    def make_discriminator_block(self, input_channels, output_channels, kernel_size=4, stride=2, final_layer=False):
+    def make_discriminator_block(self, input_channels, output_channels, kernel_size=4, stride=2, final_layer=False, spectral_norm=True):
         '''
         Function to return a sequence of operations corresponding to a discriminator block of DCGAN, 
         corresponding to a convolution, a batchnorm (except for in the last layer), and an activation.
@@ -28,10 +28,18 @@ class discriminator(nn.Module):
             stride: the stride of the convolution
             final_layer: a boolean, true if it is the final layer and false otherwise 
                       (affects activation and batchnorm)
+            spectral_norm: whether to implement spectral normalization
         '''
         if not final_layer:
             return nn.Sequential(
-                nn.Conv2d(
+                nn.utils.spectral_norm(
+                    nn.Conv2d(
+                        in_channels=input_channels,
+                        out_channels=output_channels,
+                        kernel_size=kernel_size,
+                        stride=stride
+                    )
+                ) if spectral_norm else nn.Conv2d(
                     in_channels=input_channels,
                     out_channels=output_channels,
                     kernel_size=kernel_size,
@@ -42,7 +50,14 @@ class discriminator(nn.Module):
             )
         else:
             return nn.Sequential(
-                nn.Conv2d(
+                nn.utils.spectral_norm(
+                    nn.Conv2d(
+                        in_channels=input_channels,
+                        out_channels=output_channels,
+                        kernel_size=kernel_size,
+                        stride=stride
+                    )
+                ) if spectral_norm else nn.Conv2d(
                     in_channels=input_channels,
                     out_channels=output_channels,
                     kernel_size=kernel_size,
