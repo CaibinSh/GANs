@@ -23,6 +23,7 @@ class DCGAN(LightningModule):
     lr: float = 0.0002,
     beta_1: float = 0.5,
     beta_2: float = 0.999,
+    spectral_norm: bool = True,
     **kwargs,
     ):
         super().__init__()
@@ -30,7 +31,7 @@ class DCGAN(LightningModule):
 
         self.z_dim = z_dim
         self.generator = generator(z_dim=self.hparams.z_dim, hidden_dim=self.hparams.hidden_dim, im_chan=self.hparams.im_chan).apply(self.weights_init)
-        self.discriminator = discriminator(im_chan=self.hparams.im_chan, hidden_dim=self.hparams.hidden_dim).apply(self.weights_init)
+        self.discriminator = discriminator(im_chan=self.hparams.im_chan, hidden_dim=self.hparams.hidden_dim, spectral_norm=spectral_norm).apply(self.weights_init)
     
     def weights_init(self, m):
         """initialize the weights to the normal distribution with mean 0 and standard deviation 0.02
