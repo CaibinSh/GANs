@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.2 (2022-05-23)
+### Performance
+* Add conditional GAN ([`9ed0877`](https://github.com/CaibinSh/GANs/commit/9ed0877d4b9d6466ca68ce01d3da95038f8d02ef))
+
 ## v0.3.1 (2022-05-22)
 ### Performance
 * Add spectral normalization option to DCGAN ([`6ecad2d`](https://github.com/CaibinSh/GANs/commit/6ecad2d157fc4daf270e1245a61df039e49b38b9))
