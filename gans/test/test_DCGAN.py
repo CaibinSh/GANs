@@ -1,8 +1,8 @@
 """ This tests the generator function. """
 import unittest
 
-from gans.models.DCGAN.generator import generator, get_noise
-from gans.models.DCGAN.discriminator import discriminator
+from gans.models.DCGAN.generator import get_noise
+from gans.models.DCGAN.DCGAN import DCGAN
 
 
 class test_generator(unittest.TestCase):
@@ -15,8 +15,9 @@ class test_generator(unittest.TestCase):
         Test make_generator_block()
         """
         num_test = 100
-        
-        gen = generator()
+
+        dcGAN = DCGAN()
+        gen = dcGAN.generator
 
         # Test the hidden block
         test_hidden_noise = get_noise(num_test, gen.z_dim)
@@ -64,8 +65,9 @@ class test_discriminator(unittest.TestCase):
         ''' 
         num_test = 100
 
-        gen = generator()
-        disc = discriminator()
+        dcGAN = DCGAN()
+        gen = dcGAN.generator()
+        disc = dcGAN.discriminator()
 
         test_images = gen(get_noise(num_test, gen.z_dim))
 
