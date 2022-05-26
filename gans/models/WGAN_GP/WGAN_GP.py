@@ -3,7 +3,7 @@ from torch import nn
 from pytorch_lightning import LightningModule
 import torchvision
 
-from .generator import generator, get_noise
+from ..DCGAN.generator import generator, get_noise
 from .critic import critic
 from .gradient_penalty import one_L_enforcement as gp
 
