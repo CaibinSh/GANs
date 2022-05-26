@@ -4,9 +4,8 @@ from torch import nn
 from pytorch_lightning import LightningModule
 import torch.nn.functional as F
 
-from .generator import generator, get_noise
-from .discriminator import discriminator
-
+from ..DCGAN.generator import generator, get_noise
+from ..DCGAN.discriminator import discriminator
 
 class CGAN(LightningModule):
     '''

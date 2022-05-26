@@ -3,7 +3,6 @@ import unittest
 
 import torch
 
-from gans.models.WGAN_GP.critic import critic
 from gans.models.WGAN_GP.gradient_penalty import get_gradient, gradient_penalty
 from gans.models.WGAN_GP.WGAN_GP import WGAN_GP
 
