@@ -14,7 +14,7 @@ I re-write the assignment using Pytorch-lightning and refactor them to enable re
 
 - [firstGAN](#firstGAN)
 - [DCGAN](#DCGAN)
-- [ConditionGAN](#CGAN)
+- [ConditionalGAN](#CGAN)
 - [WGAN-GP](#WGAN-GP)
 - [ControllableGAN](#ControllableGAN)
 
@@ -22,7 +22,7 @@ I re-write the assignment using Pytorch-lightning and refactor them to enable re
 
 ## [DCGAN](models/DCGAN/README.md)
 
-## [ConditionGAN](models/CGAN/README.md)
+## [ConditionalGAN](models/CGAN/README.md)
 
 ## [WGAN-GP](models/WGAN_GP/README.md)
 

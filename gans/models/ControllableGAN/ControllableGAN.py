@@ -3,8 +3,8 @@ import torchvision
 from torch import nn
 from pytorch_lightning import LightningModule
 
-from .generator import generator, get_noise
-from .discriminator import discriminator
+from ..DCGAN.generator import generator, get_noise
+from .classifier import classifier
 
 
 class ControllableGAN(LightningModule):
@@ -17,27 +17,33 @@ class ControllableGAN(LightningModule):
         hidden_dim: the inner dimension, a scalar
     '''
     def __init__(self,
-    im_chan: int = 1,
+    im_chan: int = 3,
+    n_classes: int = 40,
     z_dim: int = 10,
     hidden_dim: int = 64,
-    lr: float = 0.0002,
+    lr: float = 0.001,
     beta_1: float = 0.5,
     beta_2: float = 0.999,
     spectral_norm: bool = True,
+    pretrained: bool = False,
     **kwargs,
     ):
         super().__init__()
         self.save_hyperparameters()
 
         self.z_dim = z_dim
-        self.generator = generator(z_dim=self.hparams.z_dim, hidden_dim=self.hparams.hidden_dim, im_chan=self.hparams.im_chan).apply(self.weights_init)
-        self.discriminator = discriminator(im_chan=self.hparams.im_chan, hidden_dim=self.hparams.hidden_dim, spectral_norm=spectral_norm).apply(self.weights_init)
+        if pretrained:
+            self.generator = generator.load_from_checkpoint(".pretrained_celeba.pth")
+            self.classifier = classifier.load_from_checkpoint(".pretrained_classifier.pth")
+        else:
+            self.generator = generator(z_dim=self.hparams.z_dim, hidden_dim=self.hparams.hidden_dim, im_chan=self.hparams.im_chan).apply(self.weights_init)
+            self.classifier = classifier(im_chan=self.hparams.im_chan, n_classes=self.hparams.n_classes, hidden_dim=self.hparams.hidden_dim, spectral_norm=spectral_norm).apply(self.weights_init)
     
     def weights_init(self, m):
         """initialize the weights to the normal distribution with mean 0 and standard deviation 0.02
 
         Args:
-            m (nn.Module): nn.Module, generator or discriminator
+            m (nn.Module): nn.Module, generator or classifier
         """
         if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
             torch.nn.init.normal_(m.weight, 0.0, 0.02)
@@ -71,15 +77,15 @@ class ControllableGAN(LightningModule):
             valid = valid.type_as(imgs)
 
             # adversarial loss is binary cross-entropy
-            g_loss = self.adversarial_loss(self.discriminator(self(fake_noise)), valid)
+            g_loss = self.adversarial_loss(self.classifier(self(fake_noise)), valid)
             
             self.log("loss/g_loss", g_loss, prog_bar=True)
             
             return g_loss
 
-        # train discriminator
+        # train classifier
         if optimizer_idx == 1:
-            # Measure discriminator's ability to classify real from generated samples
+            # Measure classifier's ability to classify real from generated samples
             
             # sample noise
             fake_noise2 = get_noise(len(imgs), self.z_dim)
@@ -89,22 +95,22 @@ class ControllableGAN(LightningModule):
             valid = torch.ones(imgs.size(0), 1)
             valid = valid.type_as(imgs)
 
-            real_loss = self.adversarial_loss(self.discriminator(imgs), valid)
+            real_loss = self.adversarial_loss(self.classifier(imgs), valid)
 
             # how well can it label as fake?
             fake = torch.zeros(imgs.size(0), 1)
             fake = fake.type_as(imgs)
 
-            fake_loss = self.adversarial_loss(self.discriminator(self(fake_noise2).detach()), fake)
+            fake_loss = self.adversarial_loss(self.classifier(self(fake_noise2).detach()), fake)
 
-            # discriminator loss is the average of these
+            # classifier loss is the average of these
             d_loss = (real_loss + fake_loss) / 2
             self.log("loss/d_loss", d_loss, prog_bar=True)
             return d_loss
 
     def configure_optimizers(self):
         gen_opt = torch.optim.Adam(self.generator.parameters(), lr=self.hparams.lr, betas=(self.hparams.beta_1, self.hparams.beta_2))
-        disc_opt = torch.optim.Adam(self.discriminator.parameters(), lr=self.hparams.lr, betas=(self.hparams.beta_1, self.hparams.beta_2))
+        disc_opt = torch.optim.Adam(self.classifier.parameters(), lr=self.hparams.lr, betas=(self.hparams.beta_1, self.hparams.beta_2))
         return gen_opt, disc_opt
     
     def validation_step(self, batch, batch_idx):

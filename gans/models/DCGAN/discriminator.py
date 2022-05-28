@@ -1,4 +1,3 @@
-import numpy as np
 import torch.nn as nn
 
 class discriminator(nn.Module):
