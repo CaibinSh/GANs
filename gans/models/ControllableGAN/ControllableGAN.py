@@ -1,11 +1,15 @@
+import os
+from . import __file__
+
 import torch
 import torchvision
 from torch import nn
 from pytorch_lightning import LightningModule
 
-from ..DCGAN.generator import generator, get_noise
+from .generator import generator, get_noise
 from .classifier import classifier
 
+model_dirname = os.path.dirname(__file__)
 
 class ControllableGAN(LightningModule):
     '''
@@ -19,26 +23,37 @@ class ControllableGAN(LightningModule):
     def __init__(self,
     im_chan: int = 3,
     n_classes: int = 40,
-    z_dim: int = 10,
+    z_dim: int = 64,
     hidden_dim: int = 64,
     lr: float = 0.001,
     beta_1: float = 0.5,
     beta_2: float = 0.999,
     spectral_norm: bool = True,
     pretrained: bool = False,
+    init_weight: bool = True,
     **kwargs,
     ):
+
         super().__init__()
         self.save_hyperparameters()
 
         self.z_dim = z_dim
         if pretrained:
-            self.generator = generator.load_from_checkpoint(".pretrained_celeba.pth")
-            self.classifier = classifier.load_from_checkpoint(".pretrained_classifier.pth")
-        else:
+            pretrained_celeba = os.path.join(model_dirname, "pretrained_celeba.pth")
+            pretrained_classifier = os.path.join(model_dirname, "pretrained_classifier.pth")
+            self.generator = generator(z_dim=self.hparams.z_dim)
+            self.generator.load_state_dict(torch.load(pretrained_celeba))
+            self.generator.eval()
+            self.classifier = classifier(n_classes=self.hparams.n_classes)
+            self.classifier.load_state_dict(torch.load(pretrained_classifier))
+            self.classifier.eval()
+        elif (not pretrained) and init_weight:
             self.generator = generator(z_dim=self.hparams.z_dim, hidden_dim=self.hparams.hidden_dim, im_chan=self.hparams.im_chan).apply(self.weights_init)
-            self.classifier = classifier(im_chan=self.hparams.im_chan, n_classes=self.hparams.n_classes, hidden_dim=self.hparams.hidden_dim, spectral_norm=spectral_norm).apply(self.weights_init)
-    
+            self.classifier = classifier(im_chan=self.hparams.im_chan, n_classes=self.hparams.n_classes, hidden_dim=self.hparams.hidden_dim).apply(self.weights_init)
+        else:
+            self.generator = generator(z_dim=self.hparams.z_dim, hidden_dim=self.hparams.hidden_dim, im_chan=self.hparams.im_chan)
+            self.classifier = classifier(im_chan=self.hparams.im_chan, n_classes=self.hparams.n_classes, hidden_dim=self.hparams.hidden_dim)
+
     def weights_init(self, m):
         """initialize the weights to the normal distribution with mean 0 and standard deviation 0.02
 
@@ -116,15 +131,15 @@ class ControllableGAN(LightningModule):
     def validation_step(self, batch, batch_idx):
         pass
 
-    def on_validation_epoch_end(self):
+    def on_validation_epoch_end(self, num_images=16, size=(3, 64, 64), nrow=3):
         
-        z = get_noise(n_samples=25, z_dim=self.hparams.z_dim)
+        z = get_noise(n_samples=num_images, z_dim=self.hparams.z_dim)
         z = z.type_as(self.generator.generator[0][0].weight)
 
         # log sampled images
         sample_imgs = self(z)
 
-        image_unflat = sample_imgs.detach().cpu().view(-1, 1, 28, 28)
-        grid = torchvision.utils.make_grid(image_unflat, nrow=5)
+        image_unflat = sample_imgs.detach().cpu().view(-1, *size)
+        grid = torchvision.utils.make_grid(image_unflat, nrow=nrow)
         self.logger.experiment.add_image("generated_images", grid, self.current_epoch)
         return grid

@@ -30,7 +30,7 @@ class MNISTDataModule(LightningDataModule):
         # self.dims is returned when you call dm.size()
         # Setting default dims here because we know them.
         # Could optionally be assigned dynamically in dm.setup()
-        self.dims = (1, 28, 28)
+        # self.dims = (1, 28, 28)
         self.num_classes = 10
 
     def prepare_data(self):
