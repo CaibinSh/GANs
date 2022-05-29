@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.4 (2022-05-29)
+### Performance
+* Add controllable GAN ([`b4f7d69`](https://github.com/CaibinSh/GANs/commit/b4f7d69a3d7eabd30ffabbd3d4ffd07cf08036f5))
+* Add controllable GAN ([`97b624c`](https://github.com/CaibinSh/GANs/commit/97b624c8710afb488429ba4a6e058a6c679410a6))
+* Add controllable GAN ([`1f48b73`](https://github.com/CaibinSh/GANs/commit/1f48b7375ffeeb4873216e5b80b8081bc4e0f6df))
+
 ## v0.3.3 (2022-05-26)
 ### Performance
 * Add materials for C2 ([`e404e47`](https://github.com/CaibinSh/GANs/commit/e404e47c793f4ea404b4a9c907c5e6dd1284bed6))

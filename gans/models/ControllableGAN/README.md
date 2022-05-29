@@ -1,0 +1,1 @@
+ControllableGAN is a GAN with controllability method. To achieve the controllability, we need to train a classifier (the discriminator or more accurately critic) to recoganize a relevant feature. So that we can use it to change the generator's inputs (z-vectors) to make it generate images with more or less of that feature.

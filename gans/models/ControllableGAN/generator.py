@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 from torch import nn
 
@@ -11,12 +10,13 @@ class generator(nn.Module):
           (MNIST images are 28 x 28 = 784 so that is your default)
         hidden_dim: the inner dimension, a scalar
     '''
-    def __init__(self, z_dim=10, im_chan=1, hidden_dim=64):
+    def __init__(self, z_dim=10, im_chan=3, hidden_dim=64):
         super().__init__()
         self.z_dim = z_dim
         self.generator = nn.Sequential(
-            self.make_generator_block(z_dim, hidden_dim * 4),
-            self.make_generator_block(hidden_dim * 4, hidden_dim * 2, kernel_size=4, stride=1),
+            self.make_generator_block(z_dim, hidden_dim * 8),
+            self.make_generator_block(hidden_dim * 8, hidden_dim * 4),
+            self.make_generator_block(hidden_dim * 4, hidden_dim * 2),
             self.make_generator_block(hidden_dim * 2, hidden_dim),
             self.make_generator_block(hidden_dim, im_chan, kernel_size=4, final_layer=True),
         )
@@ -41,7 +41,7 @@ class generator(nn.Module):
                     stride=stride
                 ),
                 nn.BatchNorm2d(output_channels),
-                nn.ReLU()
+                nn.ReLU(inplace=True)
             )
         else:  # Final Layer
             return nn.Sequential(
