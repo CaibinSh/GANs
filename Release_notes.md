@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.5 (2022-06-01)
+### Performance
+* Add readme files ([`456519a`](https://github.com/CaibinSh/GANs/commit/456519a3252fbb0ddba95d2ed6d3187af82605a1))
+* Add materials for styleGAN ([`0114edd`](https://github.com/CaibinSh/GANs/commit/0114edd488cdb77d8c50ebc7811fe6e17aae96ed))
+* Add C2W2 bias ([`ca3db19`](https://github.com/CaibinSh/GANs/commit/ca3db193ab9b42e4224b8aaf25efaf01a982418c))
+
 ## v0.3.4 (2022-05-29)
 ### Performance
 * Add controllable GAN ([`b4f7d69`](https://github.com/CaibinSh/GANs/commit/b4f7d69a3d7eabd30ffabbd3d4ffd07cf08036f5))
