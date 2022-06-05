@@ -46,6 +46,22 @@ class styleGAN(LightningModule):
     def forward(self, noise):
         return self.styleGAN(noise)
 
+    def validation_step(self, val_batch, batch_idx):
+        x, _ = val_batch
+        generated_images = self(x)
+        return generated_images
+
+    def on_validation_end(self):
+        truncation = 0.7
+        test_samples = 10
+
+        z = get_truncated_noise(n_samples=test_samples, z_dim=self.hparams.z_dim, truncation=truncation) * 10
+        z = z.type_as(self.styleGAN.map.mapping[0].weight)
+
+        # log sampled images
+        sample_imgs = self(z)
+
+        return sample_imgs
 
 
 def get_truncated_noise(n_samples, z_dim, truncation):
