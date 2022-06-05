@@ -1,5 +1,4 @@
 """ This tests the generator function. """
-from tkinter.filedialog import test
 import unittest
 
 import torch
