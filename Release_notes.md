@@ -2,6 +2,14 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.6 (2022-06-05)
+### Fix
+* Fix an import bug ([`f12bb92`](https://github.com/CaibinSh/GANs/commit/f12bb92dcee78893e1c8bf116dc083e8df051c31))
+
+### Performance
+* Add styleGAN ([`2ff86fe`](https://github.com/CaibinSh/GANs/commit/2ff86fe4c7b6d635087b4ed40f66ef2022493681))
+* Add materials for C3W1 ([`026a7fe`](https://github.com/CaibinSh/GANs/commit/026a7febf2760cf995080872b7e4185760125574))
+
 ## v0.3.5 (2022-06-01)
 ### Performance
 * Add readme files ([`456519a`](https://github.com/CaibinSh/GANs/commit/456519a3252fbb0ddba95d2ed6d3187af82605a1))
