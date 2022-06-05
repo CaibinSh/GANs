@@ -13,6 +13,7 @@ Lecture note from Deeplearning.AI - [C2_W3.pdf](C2_W3.pdf)
 In this notebook, you're going to implement various components of StyleGAN, including the truncation trick, the mapping layer, noise injection, adaptive instance normalization (AdaIN), and progressive growing.  
 
 Assignment notebook - [StyleGAN](C2W3_Assignment.ipynb)
+[PyTorch-lightning version](myC2W3_styleGAN.ipynb)
 
 # Components of StyleGAN2
 In this [notebook](StyleGAN2), you're going to learn about StyleGAN2, from the paper Analyzing and Improving the Image Quality of StyleGAN ([Karras et al., 2019](1912.04958.pdf)), and how it builds on StyleGAN. This is the V2 of StyleGAN, so be prepared for even more extraordinary outputs.
