@@ -1,0 +1,12 @@
+**.ipynb_checkpoints
+**pycache__
+**.DS_Store
+**build
+**.egg-info
+**.vscode
+**ubyte**
+**lightning_logs**
+!datasets/MNIST**
+**MNIST
+**gans_logs
+**.**.ipynb
