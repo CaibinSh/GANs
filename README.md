@@ -6,9 +6,12 @@
 [![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
 [![Test](https://github.com/CaibinSh/GANs/actions/workflows/test.yml/badge.svg)](https://github.com/CaibinSh/GANs/actions/workflows/test.yml)
 
-This repository contains my codes developed during learning GANs from Deeplearning.AI. 
+This repository contains codes and materials during learning GANs from Deeplearning.AI. It is only for learning purpose.
 
-I re-write the assignment using Pytorch-lightning and refactor them to enable reusablility. 
+This specilization covers many advanced generative models, such as GAN, DCGAN, styleGAN, CycleGAN and etc. I re-write some of them using Pytorch-lightning and refactor them to enable reusablility. 
+
+All original assignments were removed to avoid violation of policies of Coursera.
+
 
 # Models
 
