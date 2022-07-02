@@ -2,6 +2,15 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.7 (2022-07-02)
+### Documentation
+* Update README ([`4c04ca6`](https://github.com/CaibinSh/GANs/commit/4c04ca6b1293d753de3de54771b679f101322be9))
+
+### Performance
+* Remove assignments ([`c34e67b`](https://github.com/CaibinSh/GANs/commit/c34e67b35641c6986aa31eb4c3520781dbbc2a44))
+* Add CycleGAN ([`ba4bada`](https://github.com/CaibinSh/GANs/commit/ba4badad5a69c04bee42081f58fb2a2bc539d1e2))
+* Add Pix2Pix ([`4294268`](https://github.com/CaibinSh/GANs/commit/42942686c099120c272179e69a46dc4afec06e35))
+
 ## v0.3.6 (2022-06-05)
 ### Fix
 * Fix an import bug ([`f12bb92`](https://github.com/CaibinSh/GANs/commit/f12bb92dcee78893e1c8bf116dc083e8df051c31))
